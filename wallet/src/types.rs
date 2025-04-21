@@ -140,7 +140,6 @@ impl Utxo {
 // --- Core Label Types ---
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-
 pub enum LabelItemRef {
     Tx(Txid),
     Address(Address<NetworkUnchecked>),

@@ -10,7 +10,6 @@
 // licenses.
 
 //! Errors that can be thrown by the [`Wallet`](crate::wallet::Wallet)
-
 use crate::descriptor::policy::PolicyError;
 use crate::descriptor::DescriptorError;
 use crate::wallet::coin_selection;
@@ -18,6 +17,8 @@ use crate::{descriptor, KeychainKind};
 use alloc::string::String;
 use bitcoin::{absolute, psbt, Amount, OutPoint, Sequence, Txid};
 use core::fmt;
+#[cfg(feature = "std")]
+use thiserror::Error;
 
 /// Errors returned by miniscript when updating inconsistent PSBTs
 #[derive(Debug, Clone)]
@@ -253,3 +254,19 @@ impl fmt::Display for BuildFeeBumpError {
 
 #[cfg(feature = "std")]
 impl std::error::Error for BuildFeeBumpError {}
+
+#[derive(Error, Debug)]
+pub enum LabelError {
+    #[error("JSON parsing error: {0}")]
+    Json(String),
+    #[error("Invalid BIP 329 format: {0}")]
+    InvalidFormat(String),
+    #[error("Invalid reference string: {0}")]
+    InvalidRef(String),
+    #[error("Persistence error: {0}")]
+    Persistence(String),
+    #[error("Descriptor error: {0}")]
+    Descriptor(#[from] descriptor::error::Error),
+    #[error("Referenced item not found in wallet: {0}")]
+    ItemNotFound(String),
+}
