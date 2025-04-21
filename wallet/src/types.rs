@@ -8,14 +8,17 @@
 // <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your option.
 // You may not use this file except in accordance with one or both of these
 // licenses.
-
 use alloc::boxed::Box;
+use alloc::string::String;
+use alloc::vec::Vec;
 use chain::{ChainPosition, ConfirmationBlockTime};
 use core::convert::AsRef;
 
-use bitcoin::transaction::{OutPoint, Sequence, TxOut};
-use bitcoin::{psbt, Weight};
+use bitcoin::address::{Address, NetworkUnchecked};
+use bitcoin::transaction::{Sequence, TxOut};
+use bitcoin::{psbt, Network, OutPoint, Txid, Weight};
 
+use crate::collections::{BTreeMap, HashMap};
 use serde::{Deserialize, Serialize};
 
 /// Types of keychains
@@ -132,4 +135,36 @@ impl Utxo {
             Utxo::Foreign { sequence, .. } => Some(*sequence),
         }
     }
+}
+
+// --- Core Label Types ---
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+
+pub enum LabelItemRef {
+    Tx(Txid),
+    Address(Address<NetworkUnchecked>),
+    OutPoint(OutPoint),
+}
+
+pub type LabelValue = String;
+pub type LabelMap = HashMap<LabelItemRef, LabelValue>;
+pub type LabelChanges = BTreeMap<LabelItemRef, Option<LabelValue>>;
+
+// --- BIP 329 Serde Struct Definitions ---
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub(crate) struct Bip329Label {
+    #[serde(rename = "type")]
+    pub label_type: String,
+    #[serde(rename = "ref")]
+    pub reference: String,
+    pub label: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub(crate) struct Bip329Export {
+    #[serde(rename = "type")]
+    pub export_type: String,
+    pub version: String,
+    pub labels: Vec<Bip329Label>,
 }
